@@ -1,0 +1,311 @@
+{
+  "data": [
+    {
+      "externalId":"0af976c5-f884-4180-bb27-51fb9d104d59",
+      "aisType":"BerlinGroup",
+      "accountId":"bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+      "accountName":"Primary Account",
+      "accountIdentity":"IN3568250058046576",
+      "currency":"INR",
+      "amount":-2223.00,
+      "bookingDate":"2024-05-23",
+      "valueDate":"2025-04-05",
+      "bankTransactionCode":"PMT",
+      "proprietaryBankTransactionCode":"DEBT",
+      "remittanceInformationUnstructured":"transport - Uber",
+      "creditorAccount":{
+         
+      },
+      "debtorAccount":{
+         "identity":"IN4525568175434575",
+         "iban":"IN4525568175434575",
+         "bban":"55053541173051",
+         "currency":"INR"
+      },
+      "accountIban":"IN3568250058046576",
+      "operationId":"OP-42cb28f6",
+      "entryReference":"REF-217593",
+      "endToEndId":"E2E-cf4e3574",
+      "debtorBic":"MOCKINBBXXX",
+      "purposeCode":"OTHR"
+   },
+   {
+      "externalId":"d2b3d654-30f3-4f02-9bad-f8abb55c73eb",
+      "aisType":"BerlinGroup",
+      "accountId":"bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+      "accountName":"Primary Account",
+      "accountIdentity":"IN3568250058046576",
+      "currency":"INR",
+      "amount":-4230.00,
+      "bookingDate":"2025-02-12",
+      "valueDate":"2025-04-05",
+      "bankTransactionCode":"PMT",
+      "proprietaryBankTransactionCode":"DEBT",
+      "remittanceInformationUnstructured":"dining - Swiggy",
+      "creditorAccount":{
+         
+      },
+      "debtorAccount":{
+         "identity":"IN7091804856560716",
+         "iban":"IN7091804856560716",
+         "bban":"87240174398369",
+         "currency":"INR"
+      },
+      "accountIban":"IN3568250058046576",
+      "operationId":"OP-8f8f12e7",
+      "entryReference":"REF-584304",
+      "endToEndId":"E2E-9845b1b3",
+      "debtorBic":"MOCKINBBXXX",
+      "purposeCode":"BKDF"
+   },
+   {
+      "externalId":"264581a0-b9e7-41ba-aa40-6fcff348dc84",
+      "aisType":"BerlinGroup",
+      "accountId":"bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+      "accountName":"Primary Account",
+      "accountIdentity":"IN3568250058046576",
+      "currency":"INR",
+      "amount":-297331.00,
+      "bookingDate":"2024-11-30",
+      "valueDate":"2025-04-05",
+      "bankTransactionCode":"PMT",
+      "proprietaryBankTransactionCode":"DEBT",
+      "remittanceInformationUnstructured":"rent - Landlord",
+      "creditorAccount":{
+         
+      },
+      "debtorAccount":{
+         "identity":"IN6460587795198942",
+         "iban":"IN6460587795198942",
+         "bban":"29256425271491",
+         "currency":"INR"
+      },
+      "accountIban":"IN3568250058046576",
+      "operationId":"OP-111910c5",
+      "entryReference":"REF-496175",
+      "endToEndId":"E2E-3c972750",
+      "debtorBic":"MOCKINBBXXX",
+      "purposeCode":"BKDF"
+   },
+   {
+      "externalId":"c822d284-06d9-44f3-b518-2195d202d1ba",
+      "aisType":"BerlinGroup",
+      "accountId":"bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+      "accountName":"Primary Account",
+      "accountIdentity":"IN3568250058046576",
+      "currency":"INR",
+      "amount":6241635.00,
+      "bookingDate":"2024-06-22",
+      "valueDate":"2025-04-05",
+      "bankTransactionCode":"PMT",
+      "proprietaryBankTransactionCode":"CRDT",
+      "remittanceInformationUnstructured":"salary - Company",
+      "creditorAccount":{
+         "identity":"IN3997475769122952",
+         "iban":"IN3997475769122952",
+         "bban":"60893100601855",
+         "currency":"INR"
+      },
+      "debtorAccount":{
+         
+      },
+      "accountIban":"IN3568250058046576",
+      "operationId":"OP-c7fa519d",
+      "entryReference":"REF-124ee4",
+      "endToEndId":"E2E-ef47262e",
+      "creditorBic":"MOCKINBBXXX",
+      "purposeCode":"OTHR"
+   },
+   {
+      "externalId":"d932ca04-7b62-452e-8c54-9cc6a60a22ef",
+      "aisType":"BerlinGroup",
+      "accountId":"bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+      "accountName":"Primary Account",
+      "accountIdentity":"IN3568250058046576",
+      "currency":"INR",
+      "amount":-94550.00,
+      "bookingDate":"2024-08-19",
+      "valueDate":"2025-04-05",
+      "bankTransactionCode":"PMT",
+      "proprietaryBankTransactionCode":"DEBT",
+      "remittanceInformationUnstructured":"rent - Landlord",
+      "creditorAccount":{
+         
+      },
+      "debtorAccount":{
+         "identity":"IN5070938531839812",
+         "iban":"IN5070938531839812",
+         "bban":"31906794040994",
+         "currency":"INR"
+      },
+      "accountIban":"IN3568250058046576",
+      "operationId":"OP-3b6d25ae",
+      "entryReference":"REF-dc5d25",
+      "endToEndId":"E2E-067ab319",
+      "debtorBic":"MOCKINBBXXX",
+      "purposeCode":"OTHR"
+   },
+   {
+      "externalId":"5104b4b3-fafa-40bd-8065-2472d9ad0393",
+      "aisType":"BerlinGroup",
+      "accountId":"bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+      "accountName":"Primary Account",
+      "accountIdentity":"IN3568250058046576",
+      "currency":"INR",
+      "amount":7144630.00,
+      "bookingDate":"2025-02-07",
+      "valueDate":"2025-04-05",
+      "bankTransactionCode":"PMT",
+      "proprietaryBankTransactionCode":"CRDT",
+      "remittanceInformationUnstructured":"salary - Company",
+      "creditorAccount":{
+         "identity":"IN9635979183915134",
+         "iban":"IN9635979183915134",
+         "bban":"38718733982251",
+         "currency":"INR"
+      },
+      "debtorAccount":{
+         
+      },
+      "accountIban":"IN3568250058046576",
+      "operationId":"OP-e869e3b1",
+      "entryReference":"REF-be8f8c",
+      "endToEndId":"E2E-debfc94d",
+      "creditorBic":"MOCKINBBXXX",
+      "purposeCode":"CASH"
+   },
+   {
+      "externalId":"26beaabc-700d-4034-a4cf-af60cbfdf4fc",
+      "aisType":"BerlinGroup",
+      "accountId":"bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+      "accountName":"Primary Account",
+      "accountIdentity":"IN3568250058046576",
+      "currency":"INR",
+      "amount":9072926.00,
+      "bookingDate":"2025-01-29",
+      "valueDate":"2025-04-05",
+      "bankTransactionCode":"PMT",
+      "proprietaryBankTransactionCode":"CRDT",
+      "remittanceInformationUnstructured":"salary - Company",
+      "creditorAccount":{
+         "identity":"IN1526660132668650",
+         "iban":"IN1526660132668650",
+         "bban":"37585345945412",
+         "currency":"INR"
+      },
+      "debtorAccount":{
+         
+      },
+      "accountIban":"IN3568250058046576",
+      "operationId":"OP-4d253386",
+      "entryReference":"REF-abdbd3",
+      "endToEndId":"E2E-91b362b5",
+      "creditorBic":"MOCKINBBXXX",
+      "purposeCode":"BKDF"
+   },
+   {
+      "externalId":"4e65b140-df9d-4bd1-a891-0a293521c047",
+      "aisType":"BerlinGroup",
+      "accountId":"bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+      "accountName":"Primary Account",
+      "accountIdentity":"IN3568250058046576",
+      "currency":"INR",
+      "amount":-3103.00,
+      "bookingDate":"2024-09-09",
+      "valueDate":"2025-04-05",
+      "bankTransactionCode":"PMT",
+      "proprietaryBankTransactionCode":"DEBT",
+      "remittanceInformationUnstructured":"dining - Zomato",
+      "creditorAccount":{
+         
+      },
+      "debtorAccount":{
+         "identity":"IN6720281427178520",
+         "iban":"IN6720281427178520",
+         "bban":"66032218099693",
+         "currency":"INR"
+      },
+      "accountIban":"IN3568250058046576",
+      "operationId":"OP-612d3c9f",
+      "entryReference":"REF-7061fa",
+      "endToEndId":"E2E-616131f2",
+      "debtorBic":"MOCKINBBXXX",
+      "purposeCode":"CASH"
+   },
+   {
+      "externalId":"c26fc0d9-0e7d-4b5b-bc9a-e9f768551457",
+      "aisType":"BerlinGroup",
+      "accountId":"bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+      "accountName":"Primary Account",
+      "accountIdentity":"IN3568250058046576",
+      "currency":"INR",
+      "amount":-1540.00,
+      "bookingDate":"2024-12-25",
+      "valueDate":"2025-04-05",
+      "bankTransactionCode":"PMT",
+      "proprietaryBankTransactionCode":"DEBT",
+      "remittanceInformationUnstructured":"transport - Ola",
+      "creditorAccount":{
+         
+      },
+      "debtorAccount":{
+         "identity":"IN9242992716009209",
+         "iban":"IN9242992716009209",
+         "bban":"91677826597619",
+         "currency":"INR"
+      },
+      "accountIban":"IN3568250058046576",
+      "operationId":"OP-04f16809",
+      "entryReference":"REF-60a05d",
+      "endToEndId":"E2E-daaa2893",
+      "debtorBic":"MOCKINBBXXX",
+      "purposeCode":"BKDF"
+   },
+   {
+      "externalId":"7ed72d14-cdb1-4315-8217-75b4c2baddcc",
+      "aisType":"BerlinGroup",
+      "accountId":"bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+      "accountName":"Primary Account",
+      "accountIdentity":"IN3568250058046576",
+      "currency":"INR",
+      "amount":-4351.00,
+      "bookingDate":"2024-05-22",
+      "valueDate":"2025-04-05",
+      "bankTransactionCode":"PMT",
+      "proprietaryBankTransactionCode":"DEBT",
+      "remittanceInformationUnstructured":"dining - Zomato",
+      "creditorAccount":{
+         
+      },
+      "debtorAccount":{
+         "identity":"IN9837572298831108",
+         "iban":"IN9837572298831108",
+         "bban":"95079479220005",
+         "currency":"INR"
+      },
+      "accountIban":"IN3568250058046576",
+      "operationId":"OP-7068a7e8",
+      "entryReference":"REF-25f4a3",
+      "endToEndId":"E2E-4274022d",
+      "debtorBic":"MOCKINBBXXX",
+      "purposeCode":"OTHR"
+   }, 
+   {
+      "externalId":"329e24f8-dfb8-4b60-89ec-885d4164bcb1",
+      "aisType":"BerlinGroup",
+      "accountId":"bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+      "accountName":"Primary Account",
+      "accountIdentity":"IN3568250058046576",
+      "currency":"INR",
+      "amount":-206938.00,
+      "bookingDate":"2024-05-16",
+      "valueDate":"2025-04-05",
+      "bankTransactionCode":"PMT",
+      "proprietaryBankTransactionCode":"DEBT",
+      "remittanceInformationUnstructured":"rent - Landlord",
+      "creditorAccount":{
+         
+      }
+   }
+  ]
+} 

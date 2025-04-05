@@ -1,0 +1,82 @@
+{
+  "characters": [
+    {
+      "id": "fox",
+      "name": "Fox",
+      "image": "/characters/fox.png"
+    },
+    {
+      "id": "pig",
+      "name": "Pig",
+      "image": "/characters/pig.png"
+    },
+    {
+      "id": "bunny",
+      "name": "Bunny",
+      "image": "/characters/bunny.png"
+    },
+    {
+      "id": "bear",
+      "name": "Bear",
+      "image": "/characters/bear.png"
+    }
+  ],
+  "accessories": [
+    {
+      "id": "bowtie",
+      "name": "Bowtie",
+      "image": "/accessories/bowtie.png",
+      "price": 100,
+      "category": "clothing"
+    },
+    {
+      "id": "cap",
+      "name": "Cap",
+      "image": "/accessories/cap.png",
+      "price": 150,
+      "category": "headwear"
+    },
+    {
+      "id": "glasses",
+      "name": "Glasses",
+      "image": "/accessories/glasses.png",
+      "price": 200,
+      "category": "face"
+    },
+    {
+      "id": "sunglasses",
+      "name": "Sunglasses",
+      "image": "/accessories/sunglasses.png",
+      "price": 250,
+      "category": "face"
+    },
+    {
+      "id": "moustache",
+      "name": "Moustache",
+      "image": "/accessories/moustache.png",
+      "price": 75,
+      "category": "face"
+    },
+    {
+      "id": "dress",
+      "name": "Dress",
+      "image": "/accessories/dress.png",
+      "price": 300,
+      "category": "clothing"
+    },
+    {
+      "id": "cape",
+      "name": "Cape",
+      "image": "/accessories/cape.png",
+      "price": 400,
+      "category": "clothing"
+    }
+  ],
+  "userData": {
+    "selectedCharacter": null,
+    "points": 0,
+    "purchasedAccessories": [],
+    "accessoryPositions": {},
+    "goals": []
+  }
+} 
