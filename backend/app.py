@@ -345,7 +345,7 @@ def get_emergency_financial_resources():
             }
         ]
     }
-with open("config.json") as f:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")) as f:
     config = json.load(f)
     CUSTOMER_ID = config["customer_id"]
     ACCOUNT_ID = config["account_id"]
