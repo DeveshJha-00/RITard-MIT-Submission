@@ -11,6 +11,7 @@ from twilio.rest import Client
 from PIL import Image
 import io
 import requests
+import json
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -279,6 +280,141 @@ def whatsapp_webhook():
         twilio_response = MessagingResponse()
         twilio_response.message("Sorry, I encountered an error processing your request.")
         return str(twilio_response)
+def extract_financial_suggestions(info):
+    """Extract contextual suggestions for finance based on the conversation"""
+    suggestions = []
+    
+    # Add suggestions based on primary financial concern
+    if info.get('primary_concern'):
+        suggestions.append(f"Tell me more about your {info['primary_concern']} situation")
+    
+    # Add suggestions based on financial goals
+    financial_goals = info.get('financial_goals', [])
+    if financial_goals and len(financial_goals) > 0:
+        suggestions.append(f"How can I help with your goal to {financial_goals[0]}?")
+    
+    # Add suggestions based on recommended strategies
+    strategies = info.get('recommended_strategies', [])
+    if strategies and len(strategies) > 0:
+        suggestions.append(f"Would you like more details about {strategies[0]}?")
+    
+    # Add general financial suggestions
+    suggestions.extend([
+        "How can I improve my budget?",
+        "What should I know about investing in mutual funds?",
+        "How can I reduce my personal loan debt?",
+        "What are some tax-saving investment options in India?"
+    ])
+    
+    return suggestions[:4]  # Return max 4 suggestions
+
+def is_financial_emergency(message):
+    """Check if the message indicates a financial emergency"""
+    emergency_keywords = [
+        'bankruptcy', 'foreclosure', 'eviction', 'debt collector',
+        'loan shark', 'garnishment', 'repossession', 'urgent financial',
+        'unable to pay EMI', 'loan default', 'credit card debt'
+    ]
+    
+    return any(keyword in message.lower() for keyword in emergency_keywords)
+
+def get_emergency_financial_resources():
+    """Return emergency financial resources for Indian population"""
+    return {
+        'message': 'For urgent financial situations in India, consider these resources:',
+        'resources': [
+            {
+                'name': 'National Consumer Helpline',
+                'contact': '1800-11-4000',
+                'available': 'Monday to Saturday, 9:30 AM to 5:30 PM'
+            },
+            {
+                'name': 'RBI Banking Ombudsman',
+                'contact': 'https://cms.rbi.org.in',
+                'available': 'Online complaint system'
+            },
+            {
+                'name': 'SEBI SCORES for investment complaints',
+                'contact': 'https://scores.gov.in',
+                'available': '24/7 online portal'
+            },
+            {
+                'name': 'Debt Recovery Tribunal Information',
+                'contact': 'https://drt.gov.in',
+                'available': 'Business hours'
+            }
+        ]
+    }
+with open("config.json") as f:
+    config = json.load(f)
+    CUSTOMER_ID = config["customer_id"]
+    ACCOUNT_ID = config["account_id"]
+
+BASE_URL = "https://api.mockbank.io"
+CLIENT_CREDENTIALS = ('ramaiah3316','12345678')  # Add your credentials here
+
+def get_auth_header():
+    token = get_access_token()
+    return {"Authorization": f"Bearer {token}"}
+
+def get_access_token():
+    auth = requests.auth.HTTPBasicAuth(*CLIENT_CREDENTIALS)
+    data = {
+        "grant_type": "password",
+        "username": "1ms23cy027@msrit.edu",
+        "password": "karteek**05U"
+    }
+    response = requests.post(f"{BASE_URL}/oauth/token", auth=auth, data=data)
+    return response.json()["access_token"]
+
+@app.route("/transactions", methods=["GET"])
+def get_transactions():
+    try:
+        response = requests.get(
+            f"{BASE_URL}/customers/{CUSTOMER_ID}/transactions",
+            headers=get_auth_header()
+        )
+        return jsonify(response.json()), response.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/transactions", methods=["POST"])
+def create_transaction():
+    try:
+        data = request.json
+        data["accountId"] = ACCOUNT_ID
+        
+        response = requests.post(
+            f"{BASE_URL}/customers/{CUSTOMER_ID}/transactions",
+            headers={**get_auth_header(), "Content-Type": "application/json"},
+            json=data
+        )
+        return jsonify(response.json()), response.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/transactions/<transaction_id>", methods=["PUT"])
+def update_transaction(transaction_id):
+    try:
+        response = requests.put(
+            f"{BASE_URL}/transactions/{transaction_id}",  # Verify actual endpoint
+            headers={**get_auth_header(), "Content-Type": "application/json"},
+            json=request.json
+        )
+        return jsonify(response.json()), response.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/transactions/<transaction_id>", methods=["DELETE"])
+def delete_transaction(transaction_id):
+    try:
+        response = requests.delete(
+            f"{BASE_URL}/transactions/{transaction_id}",  # Verify actual endpoint
+            headers=get_auth_header()
+        )
+        return jsonify({"message": "Transaction deleted"}), response.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
