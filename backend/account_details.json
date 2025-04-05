@@ -1,0 +1,24 @@
+{
+    "paging": {
+        "currentPage": 0,
+        "requestedPageSize": 50,
+        "returnedObjects": 1,
+        "numberOfObjects": 1,
+        "totalPages": 1
+    },
+    "data": [
+        {
+            "aisType": "BerlinGroup",
+            "externalId": "bd10d00c-8dcb-4332-8646-56e7a87f22e0",
+            "currency": "INR",
+            "name": "Primary Account",
+            "identity": "IN3568250058046576",
+            "mainBalance": 3865.12,
+            "iban": "IN3568250058046576",
+            "status": "enabled",
+            "type": "CASH",
+            "bic": "MOCKINBBXXX",
+            "mainBalanceType": "CLOSING_BOOKED"
+        }
+    ]
+}
