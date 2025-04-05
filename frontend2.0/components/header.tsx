@@ -82,8 +82,8 @@ export default function Header() {
                 </SignOutButton>
               </>
             ) : (
-              <Link href="/sign-in">
-                <Button variant="default" size="sm">Sign In</Button>
+              <Link href="/sign-up">
+                <Button variant="default" size="sm">Sign up</Button>
               </Link>
             )}
             
