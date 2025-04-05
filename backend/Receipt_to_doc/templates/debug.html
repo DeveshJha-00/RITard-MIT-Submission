@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Debug Information{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Debug Information</h2>
+    
+    <div style="margin-top: 20px;">
+        <h3>Input Files</h3>
+        {% if input_files %}
+            <ul class="file-list">
+                {% for file in input_files %}
+                <li>{{ file }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No input files found</p>
+        {% endif %}
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <h3>Output Files</h3>
+        {% if output_files %}
+            <ul class="file-list">
+                {% for file in output_files %}
+                <li>{{ file }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No output files found</p>
+        {% endif %}
+    </div>
+    
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="{{ url_for('index') }}" class="btn">Back to Home</a>
+    </div>
+</div>
+{% endblock %} 

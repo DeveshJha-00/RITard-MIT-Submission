@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Receipt Scanner - Upload{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Upload a Receipt Image</h2>
+    <p>Upload an image of a receipt to convert it to a document format and extract text data.</p>
+    
+    <form class="upload-form" action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+        <div>
+            <label for="file">Select a receipt image:</label>
+            <input type="file" name="file" id="file" accept=".jpg, .jpeg, .png, image/*" required>
+        </div>
+        
+        <!-- Camera options for all devices -->
+        <div id="camera-options" style="margin-top: 15px;">
+            <button type="button" class="btn" id="take-photo-btn" style="width: 100%; margin-bottom: 10px;">Take Photo with Camera</button>
+            <small>Or use the file selector above to browse for existing images</small>
+        </div>
+        
+        <button type="submit" class="btn" id="upload-button" style="margin-top: 15px;">Upload and Process</button>
+    </form>
+</div>
+
+<!-- Hidden camera interface -->
+<div id="camera-interface" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); z-index: 1000;">
+    <div style="max-width: 800px; margin: 20px auto; padding: 20px; background-color: white; border-radius: 8px;">
+        <h3 style="text-align: center; margin-bottom: 15px;">Camera Capture</h3>
+        
+        <div style="width: 100%; margin-bottom: 15px;">
+            <video id="camera-view" style="width: 100%; border-radius: 8px; background-color: #000;" playsinline autoplay></video>
+        </div>
+        
+        <div style="margin-bottom: 15px; display: none;">
+            <canvas id="camera-canvas"></canvas>
+        </div>
+        
+        <div style="display: flex; justify-content: center; gap: 10px;">
+            <button id="capture-photo" class="btn">Take Photo</button>
+            <button id="close-camera" class="btn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+{% if processed_files %}
+<div class="card">
+    <h2>Processed Receipts</h2>
+    <ul class="file-list">
+        {% for file in processed_files %}
+        <li>
+            <strong>Processed Image:</strong> 
+            <a class="file-link" href="{{ url_for('download_file', filename=file.jpg_name) }}" target="_blank">{{ file.jpg_name }}</a>
+            | 
+            <strong>Extracted Text:</strong> 
+            <a class="file-link" href="{{ url_for('view_file', filename=file.text_name) }}">View Text</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('file');
+        const uploadButton = document.getElementById('upload-button');
+        const uploadForm = document.querySelector('.upload-form');
+        const takePhotoBtn = document.getElementById('take-photo-btn');
+        
+        // Camera interface elements
+        const cameraInterface = document.getElementById('camera-interface');
+        const cameraView = document.getElementById('camera-view');
+        const cameraCanvas = document.getElementById('camera-canvas');
+        const capturePhotoBtn = document.getElementById('capture-photo');
+        const closeCameraBtn = document.getElementById('close-camera');
+        
+        // Check if device is mobile (for different camera handling)
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        let stream = null;
+        
+        // Function to open the camera
+        async function openCamera() {
+            try {
+                const constraints = {
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: isMobile ? "environment" : "user"
+                    },
+                    audio: false
+                };
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraView.srcObject = stream;
+                cameraInterface.style.display = 'block';
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                alert("Could not access camera. Make sure you've granted permission and your device has a camera.");
+                
+                // Fallback to file input for mobile devices
+                if (isMobile) {
+                    const tempInput = document.createElement('input');
+                    tempInput.type = 'file';
+                    tempInput.accept = 'image/*';
+                    tempInput.capture = 'environment';
+                    
+                    tempInput.addEventListener('change', function() {
+                        if (tempInput.files && tempInput.files.length > 0) {
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(tempInput.files[0]);
+                            fileInput.files = dataTransfer.files;
+                            uploadForm.submit();
+                        }
+                    });
+                    
+                    tempInput.click();
+                }
+            }
+        }
+        
+        // Function to close the camera
+        function closeCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            cameraInterface.style.display = 'none';
+        }
+        
+        // Function to capture a photo
+        function capturePhoto() {
+            // Set canvas dimensions to match video
+            const width = cameraView.videoWidth;
+            const height = cameraView.videoHeight;
+            cameraCanvas.width = width;
+            cameraCanvas.height = height;
+            
+            // Draw the current video frame to the canvas
+            const context = cameraCanvas.getContext('2d');
+            context.drawImage(cameraView, 0, 0, width, height);
+            
+            // Convert to blob
+            cameraCanvas.toBlob(function(blob) {
+                // Create a File object
+                const now = new Date();
+                const fileName = `camera_capture_${now.getFullYear()}${now.getMonth()+1}${now.getDate()}_${now.getHours()}${now.getMinutes()}${now.getSeconds()}.jpg`;
+                const file = new File([blob], fileName, { type: 'image/jpeg' });
+                
+                // Set the file to the file input
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                
+                // Close camera
+                closeCamera();
+                
+                // Show loading state and submit the form
+                uploadButton.textContent = 'Processing...';
+                uploadButton.disabled = true;
+                uploadForm.submit();
+            }, 'image/jpeg', 0.95);
+        }
+        
+        // Setup camera button for all devices
+        takePhotoBtn.addEventListener('click', function() {
+            // For desktop/laptop, use our custom camera interface
+            if (!isMobile) {
+                openCamera();
+            } else {
+                // For mobile, still use the native camera app for better experience
+                const tempInput = document.createElement('input');
+                tempInput.type = 'file';
+                tempInput.accept = 'image/*';
+                tempInput.capture = 'environment';
+                
+                tempInput.addEventListener('change', function() {
+                    if (tempInput.files && tempInput.files.length > 0) {
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(tempInput.files[0]);
+                        fileInput.files = dataTransfer.files;
+                        
+                        uploadButton.textContent = 'Processing...';
+                        uploadButton.disabled = true;
+                        
+                        setTimeout(() => {
+                            uploadForm.submit();
+                        }, 500);
+                    }
+                });
+                
+                tempInput.click();
+            }
+        });
+        
+        // Capture photo button
+        capturePhotoBtn.addEventListener('click', capturePhoto);
+        
+        // Close camera button
+        closeCameraBtn.addEventListener('click', closeCamera);
+        
+        // Listen for regular file input changes
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files && fileInput.files.length > 0) {
+                // Show loading state
+                uploadButton.textContent = 'Processing...';
+                uploadButton.disabled = true;
+                
+                // Submit form after a small delay
+                setTimeout(() => {
+                    uploadForm.submit();
+                }, 500);
+            }
+        });
+    });
+</script>
+{% endblock %} 

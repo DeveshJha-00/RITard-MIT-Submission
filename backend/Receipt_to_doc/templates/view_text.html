@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}View Extracted Text{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Extracted Text from Receipt</h2>
+    <p>Filename: {{ filename }}</p>
+    
+    <div style="margin: 20px 0;">
+        <a href="{{ url_for('index') }}" class="btn" style="margin-right: 10px;">Back to Home</a>
+        <a href="{{ url_for('download_file', filename=filename) }}" class="btn">Download Text File</a>
+    </div>
+    
+    <div style="margin-top: 20px; background: white; padding: 20px; border: 1px solid #ddd; border-radius: 4px;">
+        <pre style="white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; line-height: 1.5;">{{ content }}</pre>
+    </div>
+</div>
+{% endblock %} 

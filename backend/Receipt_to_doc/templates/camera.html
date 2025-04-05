@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Capture Receipt with Camera{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Capture Receipt with Camera</h2>
+    <p>Use your device's camera to take a photo of the receipt.</p>
+    
+    <div id="camera-container">
+        <div id="camera-view-container" style="width: 100%; max-width: 640px; margin: 0 auto;">
+            <video id="camera-view" style="width: 100%; border-radius: 8px; border: 1px solid #ddd; background-color: #000;" playsinline autoplay muted></video>
+        </div>
+        <div id="camera-preview-container" style="width: 100%; max-width: 640px; margin: 0 auto; display: none;">
+            <canvas id="camera-preview" style="width: 100%; border-radius: 8px; border: 1px solid #ddd;"></canvas>
+        </div>
+        
+        <div style="margin: 20px 0; text-align: center;">
+            <button id="camera-start" class="btn" style="margin-right: 10px;">Start Camera</button>
+            <button id="camera-capture" class="btn" style="display: none; margin-right: 10px;">Take Photo</button>
+            <button id="camera-retake" class="btn" style="display: none; margin-right: 10px;">Retake Photo</button>
+            <button id="camera-upload" class="btn" style="display: none;">Process Receipt</button>
+        </div>
+        
+        <div id="camera-status" style="text-align: center; margin-top: 10px; color: #666;"></div>
+    </div>
+    
+    <form id="camera-form" action="{{ url_for('upload_image') }}" method="post" style="display: none;">
+        <input type="hidden" name="image" id="camera-image-data">
+    </form>
+    
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="{{ url_for('index') }}" class="btn">Back to Upload Page</a>
+    </div>
+    
+    <!-- Fallback direct file upload option -->
+    <div class="card" style="margin-top: 20px;" id="fallback-container">
+        <h3>Direct Upload Option</h3>
+        <p>If camera access isn't working, you can directly upload a photo of a receipt.</p>
+        
+        <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" style="margin: 20px 0;" id="fallback-form">
+            <div style="margin-bottom: 15px;">
+                <input type="file" name="file" id="file-upload" capture="camera" accept=".jpg, .jpeg, .png, image/*" required style="width: 100%; padding: 10px 0;">
+            </div>
+            <button type="submit" class="btn" id="fallback-submit">Upload & Process Receipt</button>
+        </form>
+    </div>
+    
+    <div class="card" style="margin-top: 20px;">
+        <h3>Troubleshooting Camera Access</h3>
+        <ul style="text-align: left; padding-left: 20px;">
+            <li>Make sure your browser has permission to access the camera</li>
+            <li>Try using the direct upload option above - it should open your camera app</li>
+            <li>Some mobile browsers restrict camera access on HTTP connections</li>
+            <li>Try using Chrome for best compatibility</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM elements
+        const cameraView = document.getElementById('camera-view');
+        const cameraPreview = document.getElementById('camera-preview');
+        const cameraViewContainer = document.getElementById('camera-view-container');
+        const cameraPreviewContainer = document.getElementById('camera-preview-container');
+        const cameraStartBtn = document.getElementById('camera-start');
+        const cameraCaptureBtn = document.getElementById('camera-capture');
+        const cameraRetakeBtn = document.getElementById('camera-retake');
+        const cameraUploadBtn = document.getElementById('camera-upload');
+        const cameraForm = document.getElementById('camera-form');
+        const cameraImageData = document.getElementById('camera-image-data');
+        const cameraStatus = document.getElementById('camera-status');
+        const fallbackContainer = document.getElementById('fallback-container');
+        const fileUpload = document.getElementById('file-upload');
+        const fallbackForm = document.getElementById('fallback-form');
+        const fallbackSubmit = document.getElementById('fallback-submit');
+        
+        // Set up the fallback form to auto-submit when a photo is taken
+        fileUpload.addEventListener('change', function() {
+            if (fileUpload.files && fileUpload.files.length > 0) {
+                fallbackSubmit.textContent = 'Processing...';
+                fallbackSubmit.disabled = true;
+                
+                // Small delay to ensure the image is properly loaded
+                setTimeout(() => {
+                    fallbackForm.submit();
+                }, 500);
+            }
+        });
+        
+        let stream = null;
+        
+        // Browser compatibility check
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Check if getUserMedia is supported in this browser
+        const hasGetUserMedia = () => {
+            return !!(navigator.mediaDevices && 
+                     navigator.mediaDevices.getUserMedia);
+        };
+        
+        if (!hasGetUserMedia()) {
+            cameraStatus.textContent = "Camera API not supported in this browser. Please use the file upload option below.";
+            cameraStartBtn.disabled = true;
+            fallbackContainer.style.border = "2px solid #1c87c9";
+            fallbackContainer.style.padding = "10px";
+            return;
+        }
+        
+        // Start camera
+        cameraStartBtn.addEventListener('click', async function() {
+            try {
+                cameraStatus.textContent = "Requesting camera access...";
+                
+                // Try multiple camera configurations depending on device type
+                let streamOptions;
+                
+                if (isMobile) {
+                    // Mobile device - use simpler configuration with environment facing camera
+                    streamOptions = { 
+                        audio: false, 
+                        video: { 
+                            facingMode: "environment",
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        } 
+                    };
+                } else {
+                    // Desktop/laptop - can use more complex settings
+                    streamOptions = { 
+                        audio: false, 
+                        video: { 
+                            width: { min: 640, ideal: 1280, max: 1920 },
+                            height: { min: 480, ideal: 720, max: 1080 }
+                        } 
+                    };
+                }
+                
+                // Request camera access
+                stream = await navigator.mediaDevices.getUserMedia(streamOptions);
+                
+                // Show video stream
+                cameraView.srcObject = stream;
+                const playPromise = cameraView.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            cameraStatus.textContent = "Camera ready. Position the receipt in the frame and take a photo.";
+                            cameraCaptureBtn.style.display = 'inline-block';
+                            cameraStartBtn.style.display = 'none';
+                        })
+                        .catch(err => {
+                            console.error("Error playing video:", err);
+                            cameraStatus.textContent = "Error starting video playback. Try the direct upload option.";
+                        });
+                }
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                cameraStatus.textContent = "Could not access camera: " + (err.message || "Unknown error");
+                
+                // Highlight the direct upload option as a fallback
+                fallbackContainer.style.border = "2px solid #1c87c9";
+                fallbackContainer.style.padding = "10px";
+            }
+        });
+        
+        // Capture photo
+        cameraCaptureBtn.addEventListener('click', function() {
+            try {
+                // Get canvas context
+                const context = cameraPreview.getContext('2d');
+                
+                // Set canvas dimensions to match video
+                const videoWidth = cameraView.videoWidth || 640;
+                const videoHeight = cameraView.videoHeight || 480;
+                
+                cameraPreview.width = videoWidth;
+                cameraPreview.height = videoHeight;
+                
+                // Draw current video frame to canvas
+                context.drawImage(cameraView, 0, 0, videoWidth, videoHeight);
+                
+                // Hide camera view, show preview
+                cameraViewContainer.style.display = 'none';
+                cameraPreviewContainer.style.display = 'block';
+                
+                // Update button visibility
+                cameraCaptureBtn.style.display = 'none';
+                cameraRetakeBtn.style.display = 'inline-block';
+                cameraUploadBtn.style.display = 'inline-block';
+                
+                cameraStatus.textContent = "Preview of captured image. Process or retake.";
+            } catch (err) {
+                console.error('Error capturing photo:', err);
+                cameraStatus.textContent = "Error capturing photo: " + (err.message || "Unknown error");
+            }
+        });
+        
+        // Retake photo
+        cameraRetakeBtn.addEventListener('click', function() {
+            // Show camera view, hide preview
+            cameraViewContainer.style.display = 'block';
+            cameraPreviewContainer.style.display = 'none';
+            
+            // Update button visibility
+            cameraCaptureBtn.style.display = 'inline-block';
+            cameraRetakeBtn.style.display = 'none';
+            cameraUploadBtn.style.display = 'none';
+            
+            cameraStatus.textContent = "Camera ready. Position the receipt in the frame and take a photo.";
+        });
+        
+        // Upload photo
+        cameraUploadBtn.addEventListener('click', function() {
+            try {
+                // Get base64 data
+                const imageData = cameraPreview.toDataURL('image/jpeg', 0.95);
+                
+                // Set form data
+                cameraImageData.value = imageData;
+                
+                // Submit the form
+                cameraForm.submit();
+                
+                // Stop camera stream
+                if (cameraView.srcObject) {
+                    const tracks = cameraView.srcObject.getTracks();
+                    tracks.forEach(track => track.stop());
+                }
+                
+                // Show loading state
+                cameraUploadBtn.textContent = 'Processing...';
+                cameraUploadBtn.disabled = true;
+                cameraRetakeBtn.disabled = true;
+                cameraStatus.textContent = "Processing receipt image. Please wait...";
+            } catch (err) {
+                console.error('Error processing photo:', err);
+                cameraStatus.textContent = "Error processing photo: " + (err.message || "Unknown error");
+            }
+        });
+        
+        // For mobile devices, auto-activate camera start
+        if (isMobile) {
+            // A slight delay to ensure DOM is fully loaded
+            setTimeout(() => {
+                cameraStartBtn.click();
+            }, 500);
+        }
+    });
+</script>
+{% endblock %} 

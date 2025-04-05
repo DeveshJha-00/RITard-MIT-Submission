@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Receipt Processing Results{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Receipt Processing Complete</h2>
+    <p>Your receipt has been successfully processed into a document format.</p>
+    
+    <div style="margin: 30px 0;">
+        <h3>Generated Files:</h3>
+        <ul class="file-list">
+            <li>
+                <strong>Processed Image:</strong> 
+                <a class="file-link" href="{{ url_for('download_file', filename=jpg_filename) }}" target="_blank">
+                    {{ jpg_filename }}
+                </a>
+            </li>
+            <li>
+                <strong>Extracted Text:</strong> 
+                <a class="file-link" href="{{ url_for('view_file', filename=text_filename) }}">
+                    View Extracted Text
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('index') }}" class="btn">Process Another Receipt</a>
+    </div>
+</div>
+{% endblock %} 
