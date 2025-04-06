@@ -6,6 +6,7 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import AuthWrapper from "@/components/auth/AuthWrapper";
+import { GlobalThemeScript, FloatingThemeToggle } from "@/components/theme-toggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,11 +39,14 @@ export default function RootLayout({
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
+            storageKey="finwise-theme"
           >
+            <GlobalThemeScript />
             <Header />
             <AuthWrapper>
               {children}
             </AuthWrapper>
+            <FloatingThemeToggle />
           </ThemeProvider>
         </body>
       </html>

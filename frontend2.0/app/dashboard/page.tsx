@@ -160,7 +160,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 dark:text-gray-200 dark:border-gray-700"
               >
                 <Bell size={16} />
                 Notifications
@@ -174,14 +174,14 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card>
+            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   Net Balance
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   ₹{totalBalance.toLocaleString()}
                 </div>
                 <div className="flex items-center mt-1 text-sm">
@@ -361,8 +361,8 @@ export default function DashboardPage() {
                       <div
                         className={`p-2 rounded-full ${
                           transaction.amount < 0
-                            ? "bg-red-100 text-red-600"
-                            : "bg-green-100 text-green-600"
+                            ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+                            : "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
                         }`}
                       >
                         {transaction.amount < 0 ? (
@@ -372,18 +372,18 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <div>
-                        <p className="font-medium">
+                        <p className="font-medium text-gray-900 dark:text-white">
                           {transaction.remittanceInformationUnstructured}
                         </p>
                         <div className="flex items-center space-x-2">
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {format(
                               parseISO(transaction.bookingDate),
                               "MMM dd, yyyy"
                             )}
                           </p>
-                          <span className="text-sm text-gray-400">•</span>
-                          <p className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-400 dark:text-gray-500">•</span>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {getCategoryFromTransaction(transaction)}
                           </p>
                         </div>
@@ -393,20 +393,20 @@ export default function DashboardPage() {
                       <p
                         className={`font-medium ${
                           transaction.amount < 0
-                            ? "text-red-600"
-                            : "text-green-600"
+                            ? "text-red-600 dark:text-red-400"
+                            : "text-green-600 dark:text-green-400"
                         }`}
                       >
                         ₹{Math.abs(transaction.amount).toLocaleString()}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {transaction.bankTransactionCode}
                       </p>
                     </div>
                   </div>
                 ))}
                 {filteredTransactions.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     No transactions found matching your search
                   </div>
                 )}

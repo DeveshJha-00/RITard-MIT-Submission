@@ -107,11 +107,11 @@ export default function TransactionChat() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-950/30">
-      <div className="container mx-auto py-8 px-4">
-        <div className="flex gap-6">
+      <div className="container mx-auto py-8 px-4 pt-24">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Chat Section */}
           <div className="flex-1">
-            <Card className="bg-white/80 dark:bg-gray-900/70 backdrop-blur-md shadow-lg rounded-2xl">
+            <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-2xl font-bold text-white flex items-center gap-2">
@@ -134,7 +134,7 @@ export default function TransactionChat() {
               </CardHeader>
               
               <CardContent className="p-0 h-[600px] flex flex-col">
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md">
                   <AnimatePresence>
                     {messages.map((message, index) => (
                       <motion.div
@@ -145,7 +145,7 @@ export default function TransactionChat() {
                         className={`flex items-start gap-4 ${message.type === "user" ? "justify-end" : "justify-start"}`}
                       >
                         {message.type === "bot" && (
-                          <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-800">
+                          <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700">
                             <AvatarImage src="/transaction-bot.png" />
                             <AvatarFallback className="bg-gradient-to-r from-blue-500 to-indigo-600">
                               <IndianRupee className="w-5 h-5 text-white" />
@@ -157,7 +157,7 @@ export default function TransactionChat() {
                           className={`max-w-[80%] p-4 rounded-2xl ${
                             message.type === "user"
                               ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                              : "bg-white dark:bg-gray-800 border border-blue-100 dark:border-indigo-900/30"
+                              : "bg-white dark:bg-gray-700 border border-blue-100 dark:border-gray-700 text-gray-900 dark:text-white"
                           }`}
                         >
                           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -175,13 +175,13 @@ export default function TransactionChat() {
 
                 {/* Input Area */}
                 <form onSubmit={(e) => { e.preventDefault(); sendMessage(inputMessage) }}
-                  className="p-6 border-t border-blue-100 dark:border-indigo-900/30 bg-white/90 dark:bg-gray-900/80">
+                  className="p-6 border-t border-blue-100 dark:border-gray-700 bg-white dark:bg-gray-800">
                   <div className="flex gap-3">
                     <Input
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       placeholder="Ask about your transactions..."
-                      className="rounded-full bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm pr-12"
+                      className="rounded-full bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm pr-12"
                       disabled={isLoading}
                     />
                     <button

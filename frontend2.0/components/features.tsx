@@ -42,12 +42,12 @@ export default function Features() {
   }
 
   const featureIcons = [
-    { icon: <Lock className="h-6 w-6 text-blue-400" />, color: "blue" },
-    { icon: <BarChart2 className="h-6 w-6 text-purple-400" />, color: "purple" },
-    { icon: <DollarSign className="h-6 w-6 text-cyan-400" />, color: "cyan" },
-    { icon: <Zap className="h-6 w-6 text-indigo-400" />, color: "indigo" },
-    { icon: <Users className="h-6 w-6 text-pink-400" />, color: "pink" },
-    { icon: <RefreshCw className="h-6 w-6 text-green-400" />, color: "green" },
+    { icon: <Lock className="h-6 w-6 text-blue-400 dark:text-blue-300" />, color: "blue" },
+    { icon: <BarChart2 className="h-6 w-6 text-purple-400 dark:text-purple-300" />, color: "purple" },
+    { icon: <DollarSign className="h-6 w-6 text-cyan-400 dark:text-cyan-300" />, color: "cyan" },
+    { icon: <Zap className="h-6 w-6 text-indigo-400 dark:text-indigo-300" />, color: "indigo" },
+    { icon: <Users className="h-6 w-6 text-pink-400 dark:text-pink-300" />, color: "pink" },
+    { icon: <RefreshCw className="h-6 w-6 text-green-400 dark:text-green-300" />, color: "green" },
   ]
 
   const features = [
@@ -84,9 +84,9 @@ export default function Features() {
   ]
 
   return (
-    <section id="features" className="py-16 md:py-24 bg-neutral-900 text-white relative overflow-hidden">
+    <section id="features" className="py-16 md:py-24 bg-neutral-900 dark:bg-gray-900 text-white relative overflow-hidden">
       {/* Background Grid Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-600/5 dark:to-purple-600/5">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOEgxOHYxOGgxOFYxOHptNiAwaC02djZoNnYtNnoiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')]"></div>
       </div>
 
@@ -99,10 +99,10 @@ export default function Features() {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 inline-block">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 dark:from-blue-300 dark:to-purple-400 inline-block">
             Powerful Features
           </h2>
-          <p className="text-neutral-300 max-w-2xl mx-auto text-lg">
+          <p className="text-neutral-300 dark:text-gray-300 max-w-2xl mx-auto text-lg">
             Our cutting-edge platform offers modern solutions for modern financial challenges
           </p>
         </motion.div>
@@ -118,19 +118,19 @@ export default function Features() {
           {features.map((feature, index) => (
             <motion.div
               key={index}
-              className={`group bg-neutral-800/50 backdrop-blur-lg rounded-xl p-6 transition-all duration-300 hover:translate-y-[-8px] hover:shadow-lg hover:shadow-${feature.color}-500/10 border border-neutral-700/50`}
+              className={`group bg-neutral-800/50 dark:bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 transition-all duration-300 hover:translate-y-[-8px] hover:shadow-lg hover:shadow-${feature.color}-500/10 border border-neutral-700/50 dark:border-gray-700/50`}
               variants={itemVariants}
             >
               <div
-                className={`w-12 h-12 bg-${feature.color}-500/20 rounded-lg flex items-center justify-center mb-5 group-hover:bg-${feature.color}-500/30 transition-all duration-300`}
+                className={`w-12 h-12 bg-${feature.color}-500/20 dark:bg-${feature.color}-500/10 rounded-lg flex items-center justify-center mb-5 group-hover:bg-${feature.color}-500/30 dark:group-hover:bg-${feature.color}-500/20 transition-all duration-300`}
               >
                 {featureIcons[index].icon}
               </div>
               <h3 className="text-xl font-bold mb-2 text-white">{feature.title}</h3>
-              <p className="text-neutral-400 mb-4">{feature.description}</p>
+              <p className="text-neutral-400 dark:text-gray-400 mb-4">{feature.description}</p>
               <Link
                 href="#"
-                className={`text-${feature.color}-400 hover:text-${feature.color}-300 flex items-center text-sm font-medium group-hover:translate-x-1 transition-transform duration-300`}
+                className={`text-${feature.color}-400 dark:text-${feature.color}-300 hover:text-${feature.color}-300 dark:hover:text-${feature.color}-200 flex items-center text-sm font-medium group-hover:translate-x-1 transition-transform duration-300`}
               >
                 Learn more
                 <ArrowRight className="h-4 w-4 ml-1" />
@@ -147,7 +147,7 @@ export default function Features() {
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.3 }}
         >
-          <div className="bg-neutral-800/30 backdrop-blur-sm rounded-2xl p-2 max-w-5xl mx-auto overflow-hidden border border-neutral-700/50">
+          <div className="bg-neutral-800/30 dark:bg-gray-800/30 backdrop-blur-sm rounded-2xl p-2 max-w-5xl mx-auto overflow-hidden border border-neutral-700/50 dark:border-gray-700/50">
             <Image
               src="https://media.licdn.com/dms/image/v2/D5612AQHWZlD5aa5kMw/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1729785974312?e=2147483647&v=beta&t=vYCTLpGAKLAWRJwAj1LqYHSsUFzQQVDYeI_Hw6cs6tg"
               alt="Interactive fintech platform interface showcase"
@@ -156,7 +156,7 @@ export default function Features() {
               height={720}
             />
             <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-20">
-              <span className="px-4 py-2 bg-blue-500/90 text-white rounded-full text-sm font-medium backdrop-blur-sm">
+              <span className="px-4 py-2 bg-blue-500/90 dark:bg-blue-600/90 text-white rounded-full text-sm font-medium backdrop-blur-sm">
                 Powerful Dashboard
               </span>
             </div>
@@ -173,7 +173,7 @@ export default function Features() {
         >
           <Link
             href="#"
-            className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-500 hover:to-purple-500 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 group"
+            className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 rounded-full hover:from-blue-500 hover:to-purple-500 dark:hover:from-blue-600 dark:hover:to-purple-600 transform hover:scale-105 transition-all duration-300 shadow-lg shadow-blue-500/25 dark:shadow-blue-700/25 hover:shadow-blue-500/40 dark:hover:shadow-blue-700/40 group"
           >
             Explore All Features
             <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />

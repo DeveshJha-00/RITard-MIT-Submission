@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Check,
   RefreshCw,
+  LineChart,
 } from "lucide-react"
 
 // Define types
@@ -431,238 +432,243 @@ export default function VoiceTransactionBot() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-gradient-to-br from-gray-900 to-gray-800 text-white">
-      {/* Welcome Animation */}
-      {showWelcomeAnimation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-90">
-          <div className="text-center">
-            <div className="mb-4 flex items-center justify-center">
-              <div className="relative h-24 w-24">
-                <div className="absolute inset-0 animate-ping rounded-full bg-emerald-500 opacity-75"></div>
-                <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500">
-                  <Wallet className="h-12 w-12 text-white" />
-                </div>
-              </div>
-            </div>
-            <h1 className="animate-pulse text-4xl font-bold text-white">Transaction Bot</h1>
-            <p className="mt-2 text-gray-300">Your voice-powered financial assistant</p>
-          </div>
-        </div>
-      )}
-
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-gray-800 bg-opacity-80 backdrop-blur-md">
-        <div className="container mx-auto flex items-center justify-between p-4">
-          <div className="flex items-center space-x-2">
-            <Wallet className="h-8 w-8 text-emerald-500" />
-            <h1 className="text-2xl font-bold">Transaction Bot</h1>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {/* Language Selector */}
-            <div className="relative">
-              <button
-                onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
-                className="flex items-center space-x-2 rounded-full bg-gray-700 px-3 py-2 text-sm transition-colors hover:bg-gray-600"
-              >
-                <Languages className="h-4 w-4" />
-                <span>
-                  {currentLanguage.flag} {currentLanguage.name}
-                </span>
-                <ChevronDown className="h-4 w-4" />
-              </button>
-
-              {isLanguageMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-gray-700 shadow-lg ring-1 ring-black ring-opacity-5">
-                  <div className="py-1">
-                    {languages.map((language) => (
-                      <button
-                        key={language.code}
-                        onClick={() => changeLanguage(language)}
-                        className="flex w-full items-center justify-between px-4 py-2 text-left text-sm text-white hover:bg-gray-600"
-                      >
-                        <span>
-                          {language.flag} {language.name}
-                        </span>
-                        {language.code === currentLanguage.code && <Check className="h-4 w-4 text-emerald-500" />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Auto-detect Toggle */}
-            <div className="flex items-center space-x-2">
-              <span className="text-sm">Auto-detect</span>
-              <button
-                onClick={() => setAutoDetect(!autoDetect)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  autoDetect ? "bg-emerald-500" : "bg-gray-600"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    autoDetect ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto flex flex-1 flex-col md:flex-row">
-        {/* Main Chat Area */}
-        <div className="flex flex-1 flex-col p-4">
-          {/* Messages Container */}
-          <div className="mb-4 flex-1 overflow-y-auto rounded-lg bg-gray-800 p-4 shadow-lg">
-            <div className="space-y-4">
-              {messages.map((message, index) => (
-                <div key={index} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[80%] rounded-lg p-4 ${
-                      message.isUser ? "bg-violet-600 text-white" : "bg-gray-700 text-white"
-                    }`}
-                  >
-                    <div className="whitespace-pre-wrap">{message.text}</div>
-
-                    {/* Audio playback for bot messages */}
-                    {!message.isUser && message.audio && (
-                      <button
-                        onClick={() => toggleAudio(message.audio!)}
-                        className="mt-2 flex items-center space-x-1 rounded-full bg-gray-600 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-500"
-                      >
-                        {isPlaying ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
-                        <span>{isPlaying ? "Stop" : "Play"}</span>
-                      </button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-950/30 pt-24">
+      <div className="container mx-auto py-8 px-4">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="lg:w-2/3 w-full">
+            <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
+                <div className="flex justify-between items-center">
+                  <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <Mic className="w-6 h-6" />
+                    Voice Transaction Assistant
+                  </h1>
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
+                      className="flex items-center gap-2 bg-white/20 hover:bg-white/30 py-2 px-4 rounded-md text-white transition-colors"
+                    >
+                      <span className="text-lg">{currentLanguage.flag}</span>
+                      <span>{currentLanguage.name}</span>
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                    {isLanguageMenuOpen && (
+                      <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 z-50">
+                        <div className="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Auto-detect</span>
+                            <button
+                              onClick={() => setAutoDetect(!autoDetect)}
+                              className={`relative inline-flex h-5 w-9 items-center rounded-full ${
+                                autoDetect ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-700"
+                              }`}
+                            >
+                              <span
+                                className={`inline-block h-4 w-4 rounded-full bg-white transform transition-transform ${
+                                  autoDetect ? "translate-x-4" : "translate-x-1"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="max-h-64 overflow-y-auto py-1">
+                          {languages.map((lang) => (
+                            <button
+                              key={lang.code}
+                              className={`w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                                currentLanguage.code === lang.code ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300" : "text-gray-900 dark:text-gray-100"
+                              }`}
+                              onClick={() => {
+                                changeLanguage(lang)
+                                setIsLanguageMenuOpen(false)
+                              }}
+                            >
+                              <span className="text-lg">{lang.flag}</span>
+                              <span>{lang.name}</span>
+                              {currentLanguage.code === lang.code && <Check className="ml-auto w-4 h-4" />}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-
-          {/* Audio Visualizer and Recording Controls */}
-          <div className="rounded-lg bg-gray-800 p-4 shadow-lg">
-            <div className="mb-4 h-20 w-full">
-              <canvas ref={visualizerRef} className="h-full w-full rounded-lg bg-gray-700"></canvas>
-            </div>
-
-            <div className="flex items-center justify-center">
-              <button
-                onClick={toggleRecording}
-                disabled={isProcessing}
-                className={`flex h-16 w-16 items-center justify-center rounded-full transition-all ${
-                  isRecording ? "bg-rose-500 hover:bg-rose-600" : "bg-emerald-500 hover:bg-emerald-600"
-                } ${isProcessing ? "cursor-not-allowed opacity-50" : ""}`}
-              >
-                {isProcessing ? (
-                  <Loader2 className="h-8 w-8 animate-spin text-white" />
-                ) : isRecording ? (
-                  <MicOff className="h-8 w-8 text-white" />
-                ) : (
-                  <Mic className="h-8 w-8 text-white" />
-                )}
-              </button>
-            </div>
-
-            <div className="mt-4 text-center text-sm text-gray-400">
-              {isRecording
-                ? "Tap to stop recording"
-                : isProcessing
-                  ? "Processing your message..."
-                  : "Tap to start speaking"}
-            </div>
-          </div>
-        </div>
-
-        {/* Transaction Insights Panel */}
-        <div className="w-full p-4 md:w-96">
-          <div className="rounded-lg bg-gray-800 p-4 shadow-lg">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold">Transaction Insights</h2>
-              <button
-                onClick={generateRandomInsights}
-                className="rounded-full bg-gray-700 p-2 transition-colors hover:bg-gray-600"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Account Summary */}
-            <div className="mb-6 rounded-lg bg-gray-700 p-4">
-              <div className="mb-2 flex items-center space-x-2">
-                <CreditCard className="h-5 w-5 text-emerald-500" />
-                <h3 className="font-semibold">Account Summary</h3>
               </div>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <div className="rounded-md bg-gray-600 p-2">
-                  <div className="text-xs text-gray-400">Balance</div>
-                  <div className="text-lg font-bold">₹45,250</div>
-                </div>
-                <div className="rounded-md bg-gray-600 p-2">
-                  <div className="text-xs text-gray-400">Transactions</div>
-                  <div className="text-lg font-bold">24</div>
-                </div>
-              </div>
-            </div>
 
-            {/* Spending Categories */}
-            <div className="mb-6">
-              <div className="mb-2 flex items-center space-x-2">
-                <BarChart3 className="h-5 w-5 text-violet-500" />
-                <h3 className="font-semibold">Spending Categories</h3>
-              </div>
-              <div className="space-y-3">
-                {transactionInsights.map((insight, index) => (
-                  <div key={index}>
-                    <div className="mb-1 flex items-center justify-between text-sm">
-                      <span>{insight.category}</span>
-                      <span>₹{insight.amount.toLocaleString()}</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-700">
-                      <div
-                        className={`h-full ${insight.color} transition-all duration-500`}
-                        style={{ width: `${insight.percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Transactions */}
-            <div>
-              <div className="mb-2 flex items-center space-x-2">
-                <ArrowUpDown className="h-5 w-5 text-amber-500" />
-                <h3 className="font-semibold">Recent Transactions</h3>
-              </div>
-              <div className="space-y-2">
-                {[
-                  { desc: "Grocery Store", amount: -2500, date: "2 days ago" },
-                  { desc: "Salary Credit", amount: 45000, date: "5 days ago" },
-                  { desc: "Electric Bill", amount: -1200, date: "1 week ago" },
-                ].map((transaction, index) => (
-                  <div key={index} className="rounded-md bg-gray-700 p-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">{transaction.desc}</div>
-                        <div className="text-xs text-gray-400">{transaction.date}</div>
-                      </div>
-                      <div className={transaction.amount > 0 ? "text-emerald-500" : "text-rose-500"}>
-                        {transaction.amount > 0 ? "+" : ""}₹{Math.abs(transaction.amount).toLocaleString()}
+              {/* Message Area */}
+              <div className="h-[400px] overflow-y-auto p-6 bg-white dark:bg-gray-800">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`mb-4 flex ${message.isUser ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[80%] p-4 rounded-2xl ${
+                        message.isUser
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                      {message.audio && (
+                        <button
+                          className={`mt-2 flex items-center gap-1 text-xs ${
+                            message.isUser
+                              ? "text-white/80 hover:text-white"
+                              : "text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                          }`}
+                          onClick={() => toggleAudio(message.audio!)}
+                        >
+                          {isPlaying && currentAudio?.src?.includes(message.audio) ? (
+                            <>
+                              <VolumeX className="w-3 h-3" /> Stop Audio
+                            </>
+                          ) : (
+                            <>
+                              <Volume2 className="w-3 h-3" /> Play Audio
+                            </>
+                          )}
+                        </button>
+                      )}
+                      <div className="mt-1 text-xs opacity-70">
+                        {new Date(message.timestamp).toLocaleTimeString()}
+                        {message.language && (
+                          <span className="ml-2">
+                            {languages.find((l) => l.code === message.language)?.flag || ""}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
                 ))}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Visualizer and Controls */}
+              <div className="border-t border-gray-200 dark:border-gray-700 p-6 bg-gray-50 dark:bg-gray-800">
+                <div className="relative h-24 mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                  <canvas ref={visualizerRef} className="w-full h-full" />
+                  {!isRecording && !isProcessing && (
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500">
+                      Speak to analyze your finances
+                    </div>
+                  )}
+                  {isProcessing && (
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500">
+                      <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+                      Processing your request...
+                    </div>
+                  )}
+                </div>
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={toggleRecording}
+                    disabled={isProcessing}
+                    className={`p-4 rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95 ${
+                      isRecording
+                        ? "bg-red-500 hover:bg-red-600"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    } text-white disabled:opacity-50 disabled:pointer-events-none`}
+                  >
+                    {isRecording ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Transaction Insights Panel */}
+          <div className="lg:w-1/3 w-full">
+            <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+              <div className="p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <LineChart className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+                    Transaction Insights
+                  </h2>
+                  <button
+                    onClick={generateRandomInsights}
+                    className="rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 transition-colors text-gray-600 dark:text-gray-300"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {/* Account Summary */}
+                <div className="mb-6 rounded-xl bg-blue-50 dark:bg-gray-700/50 p-4">
+                  <div className="mb-2 flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200">Account Summary</h3>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <div className="rounded-md bg-white/80 dark:bg-gray-800/80 p-3 shadow-sm">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Balance</div>
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">₹45,250</div>
+                    </div>
+                    <div className="rounded-md bg-white/80 dark:bg-gray-800/80 p-3 shadow-sm">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Transactions</div>
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">24</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Spending Categories */}
+                <div className="mb-6">
+                  <div className="mb-2 flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200">Spending Categories</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {transactionInsights.map((insight, index) => (
+                      <div key={index}>
+                        <div className="mb-1 flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
+                          <span>{insight.category}</span>
+                          <span>₹{insight.amount.toLocaleString()}</span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                          <div
+                            className={`h-full ${insight.color} transition-all duration-500`}
+                            style={{ width: `${insight.percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recent Transactions */}
+                <div>
+                  <div className="mb-2 flex items-center gap-2">
+                    <ArrowUpDown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200">Recent Transactions</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {[
+                      { desc: "Grocery Store", amount: -2500, date: "2 days ago" },
+                      { desc: "Salary Credit", amount: 45000, date: "5 days ago" },
+                      { desc: "Electric Bill", amount: -1200, date: "1 week ago" },
+                    ].map((transaction, index) => (
+                      <div key={index} className="rounded-md bg-gray-100 dark:bg-gray-700 p-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-gray-800 dark:text-gray-200">{transaction.desc}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{transaction.date}</div>
+                          </div>
+                          <div className={transaction.amount > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}>
+                            {transaction.amount > 0 ? "+" : ""}₹{Math.abs(transaction.amount).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
 
