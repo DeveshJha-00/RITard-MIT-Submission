@@ -8,7 +8,12 @@ from PIL import Image, UnidentifiedImageError
 import re
 import logging
 from datetime import datetime
-
+from langchain_groq import ChatGroq
+from PIL import Image
+import io
+import uuid
+import base64
+import json
 # Set up logging
 logging.basicConfig(level=logging.INFO, 
                    format='%(asctime)s - %(levelname)s - %(message)s')
@@ -350,111 +355,161 @@ def clean_text(text):
         logger.error(f"Error in clean_text: {str(e)}")
         return text  # Return original text in case of error
 
-def process_receipt(image_path, output_dir='output'):
-    """
-    Main function to process a receipt image
-    """
-    # Create output directory if it doesn't exist
-    os.makedirs(output_dir, exist_ok=True)
-    
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Initialize Groq Vision LLM
+vision_llm = ChatGroq(
+    model="llama-3.2-90b-vision-preview",
+    temperature=0,
+    max_tokens=None,
+    timeout=None,
+    max_retries=2,
+    api_key="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"
+)
+
+def encode_image_to_base64(image_path):
+    """Convert an image file to base64 encoding"""
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
+def process_receipt(image_path):
+    """Process a receipt image using Groq Vision LLM"""
     logger.info(f"Processing receipt: {image_path}")
     
-    # Check if the file exists
-    if not os.path.exists(image_path):
-        error_msg = f"File not found: {image_path}"
-        logger.error(error_msg)
-        raise FileNotFoundError(error_msg)
+    # Create output directory if it doesn't exist
+    output_dir = 'output'
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Generate unique ID for this processing job
+    job_id = uuid.uuid4().hex[:8]
     
     try:
-        # Read the input image
-        image = cv2.imread(image_path)
-        if image is None:
-            error_msg = f"Could not read image: {image_path}. The file may be corrupted or not an image."
-            logger.error(error_msg)
-            raise ValueError(error_msg)
+        # Encode image to base64
+        base64_image = encode_image_to_base64(image_path)
         
-        # Check image dimensions
-        h, w = image.shape[:2]
-        logger.info(f"Image dimensions: {w}x{h}")
+        # Create prompt for the vision model
+        prompt = """
+        Analyze this receipt or bank statement image and extract all possible details.
         
-        if h == 0 or w == 0:
-            error_msg = "Invalid image dimensions (0 width or height)"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
+        For receipts, extract:
+        - Merchant/Store name
+        - Date of purchase
+        - Time of purchase (if available)
+        - Total amount
+        - Currency
+        - Payment method (if available)
+        - Individual items with prices (if visible)
+        - Tax amount (if available)
+        - Receipt number or reference ID (if available)
+        
+        For bank statements, extract:
+        - Account number (last 4 digits only for privacy)
+        - Transaction date
+        - Transaction description
+        - Amount
+        - Transaction type (credit/debit)
+        - Balance (if available)
+        - Reference numbers
+        
+        Return the data in a structured JSON format with the following fields:
+        {
+            "document_type": "receipt" or "bank_statement",
+            "accountId": "account number or NA",
+            "amount": "total amount",
+            "currency": "currency code",
+            "bookingDate": "transaction date in YYYY-MM-DD format",
+            "valueDate": "value date or NA",
+            "operationId": "operation ID or receipt number",
+            "entryReference": "reference number or NA",
+            "endToEndId": "end-to-end ID or NA",
+            "remittanceInformationUnstructured": "merchant name - description",
+            "purposeCode": "purpose code or NA",
+            "bankTransactionCode": "transaction code or NA",
+            "proprietaryBankTransactionCode": "CRDT for credit or DEBT for debit",
+            "items": [
+                {
+                    "name": "item name",
+                    "quantity": "quantity",
+                    "price": "price"
+                }
+            ]
+        }
+        
+        If any field is not available in the image, use "NA" as the value.
+        Ensure the JSON is valid and properly formatted.
+        """
+        
+        # Call the vision model - FIXED FORMAT FOR LANGCHAIN GROQ
+        logger.info("Sending image to Groq Vision LLM for analysis")
+        
+        # Create messages in the correct format for LangChain Groq
+        messages = [
+            {
+                "role": "user", 
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                ]
+            }
+        ]
+        
+        # Call the model with properly formatted messages
+        response = vision_llm.invoke(messages)
+        
+        # Extract the response text
+        response_text = response.content
+        logger.info("Received response from Groq Vision LLM")
+        
+        # Try to extract JSON from the response
+        try:
+            # Find JSON in the response
+            json_start = response_text.find('{')
+            json_end = response_text.rfind('}') + 1
             
-        # Simple check to make sure we have a real image
-        if h < 10 or w < 10:
-            error_msg = f"Image too small: {w}x{h}"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
+            if json_start >= 0 and json_end > json_start:
+                json_str = response_text[json_start:json_end]
+                extracted_data = json.loads(json_str)
+                logger.info("Successfully extracted JSON data")
+            else:
+                logger.warning("No JSON found in response, using full text")
+                extracted_data = {"error": "No structured data found", "full_text": response_text}
+        except json.JSONDecodeError as e:
+            logger.error(f"Error parsing JSON: {str(e)}")
+            extracted_data = {"error": "Invalid JSON format", "full_text": response_text}
         
-        # Resize very large images to prevent processing issues
-        if max(h, w) > 2000:
-            image = resize_if_needed(image)
-            h, w = image.shape[:2]
-            logger.info(f"Image resized to: {w}x{h}")
+        # Print the extracted data to CLI for debugging
+        print("\n" + "="*50)
+        print("EXTRACTED DATA FROM RECEIPT/STATEMENT:")
+        print(json.dumps(extracted_data, indent=2))
+        print("="*50 + "\n")
         
-        # Keep a colored copy of the original image for the final JPG
-        color_image = image.copy()
+        # Save the extracted text to a file
+        text_filename = f"{os.path.splitext(os.path.basename(image_path))[0]}_{job_id}_text.txt"
+        text_path = os.path.join(output_dir, text_filename)
         
-        # Preprocess the image
-        logger.info("Preprocessing image...")
-        preprocessed = preprocess_image(image)
-        
-        # Find the receipt contour
-        logger.info("Finding receipt contours...")
-        receipt_contour, visualization = find_receipt_contour(preprocessed, image)
-        
-        # Apply perspective transform to get a top-down view
-        logger.info("Applying perspective transformation...")
-        warped = perspective_transform(image, receipt_contour)
-        
-        # Also transform the color image
-        color_warped = perspective_transform(color_image, receipt_contour)
-        
-        # Enhance the image for OCR
-        logger.info("Enhancing image for OCR...")
-        enhanced = enhance_image_for_ocr(warped)
-        
-        # Try multiple OCR approaches and combine results
-        # First, try with enhanced image
-        logger.info("Performing OCR on enhanced image...")
-        text1 = extract_text(enhanced)
-        
-        # Second, try with inverted image for cases where text and background are reversed
-        logger.info("Performing OCR on inverted image...")
-        inverted = cv2.bitwise_not(enhanced)
-        text2 = extract_text(inverted)
-        
-        # Use the longer text result, which usually indicates better OCR performance
-        final_text = text1 if len(text1) > len(text2) else text2
-        logger.info(f"Selected OCR result with {len(final_text)} characters")
-        
-        # Generate output file names
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        base_name = os.path.splitext(os.path.basename(image_path))[0]
-        output_base = f"{base_name}_{timestamp}"
-        
-        # Save as final JPG document using the color version
-        document_path = os.path.join(output_dir, f"{output_base}_document.jpg")
-        logger.info(f"Saving JPG document in color: {document_path}")
-        save_as_document(color_warped, document_path)
-        
-        # Save extracted text to a file
-        text_path = os.path.join(output_dir, f"{output_base}_text.txt")
-        logger.info(f"Saving extracted text: {text_path}")
         with open(text_path, 'w', encoding='utf-8') as f:
-            f.write(final_text)
+            f.write(json.dumps(extracted_data, indent=2))
         
-        logger.info("Receipt processing complete")
+        # Copy the original image to the output directory
+        document_filename = f"{os.path.splitext(os.path.basename(image_path))[0]}_{job_id}_document.jpg"
+        document_path = os.path.join(output_dir, document_filename)
+        
+        # Open and save the image (this also handles format conversion if needed)
+        with Image.open(image_path) as img:
+            img.save(document_path, 'JPEG')
+        
+        logger.info(f"Processing complete. Results saved to {text_path} and {document_path}")
         
         return {
-            'document_path': document_path,
             'text_path': text_path,
-            'text_content': final_text
+            'document_path': document_path,
+            'extracted_data': extracted_data
         }
+        
     except Exception as e:
-        logger.error(f"Error processing receipt: {str(e)}", exc_info=True)
+        logger.error(f"Error processing receipt: {str(e)}")
         raise
 
 def main():
@@ -475,4 +530,4 @@ def main():
         print(f"Error processing receipt: {e}")
 
 if __name__ == '__main__':
-    main() 
+    main()

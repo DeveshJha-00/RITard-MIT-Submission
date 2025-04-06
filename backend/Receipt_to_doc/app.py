@@ -1,10 +1,16 @@
-# WEB BASED INTERFACE TO UPLOAD OR CLICK PICS MANUALLY (WORKS ON MOBILE DEVICES AS WELL) 
-
+# Add uuid import at the top of the file
 import os
-import uuid
+import uuid  # Add this import
 import base64
-import traceback
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
+import json
+import logging
+from datetime import datetime
+from PIL import Image
+import io
+import traceback  # Add this import
+import uuid
+# Rest of your code remains the same
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, jsonify
 from werkzeug.utils import secure_filename
 from receipt_scanner import process_receipt
 
@@ -76,7 +82,7 @@ def upload_file():
             app.logger.info(f"File saved to {file_path}, starting processing...")
             
             try:
-                # Process the receipt
+                # Process the receipt with Groq Vision LLM
                 result = process_receipt(file_path)
                 
                 # Extract filenames for rendering
@@ -84,11 +90,16 @@ def upload_file():
                 jpg_filename = os.path.basename(document_path)
                 text_filename = os.path.basename(result['text_path'])
                 
+                # Get the extracted data
+                extracted_data = result.get('extracted_data', {})
+                
                 app.logger.info(f"Processing complete. JPG: {jpg_filename}, Text: {text_filename}")
                 flash('Receipt processed successfully!')
                 
                 # Redirect to the results page
-                return redirect(url_for('show_result', jpg_filename=jpg_filename, text_filename=text_filename))
+                return redirect(url_for('show_result', 
+                                        jpg_filename=jpg_filename, 
+                                        text_filename=text_filename))
             
             except Exception as e:
                 error_details = traceback.format_exc()
@@ -134,7 +145,7 @@ def upload_image():
             
             app.logger.info(f"Camera image saved to {file_path}, starting processing...")
             
-            # Process the receipt
+            # Process the receipt with Groq Vision LLM
             try:
                 result = process_receipt(file_path)
                 
@@ -143,11 +154,16 @@ def upload_image():
                 jpg_filename = os.path.basename(document_path)
                 text_filename = os.path.basename(result['text_path'])
                 
+                # Get the extracted data
+                extracted_data = result.get('extracted_data', {})
+                
                 app.logger.info(f"Processing complete. JPG: {jpg_filename}, Text: {text_filename}")
                 flash('Receipt processed successfully!')
                 
                 # Redirect to the results page
-                return redirect(url_for('show_result', jpg_filename=jpg_filename, text_filename=text_filename))
+                return redirect(url_for('show_result', 
+                                        jpg_filename=jpg_filename, 
+                                        text_filename=text_filename))
             
             except Exception as e:
                 error_details = traceback.format_exc()
@@ -179,9 +195,56 @@ def show_result():
         flash('Output files not found. Please try processing the receipt again.')
         return redirect(url_for('index'))
     
+    # Read the extracted data
+    with open(text_path, 'r', encoding='utf-8') as f:
+        try:
+            extracted_data = json.loads(f.read())
+        except json.JSONDecodeError:
+            extracted_data = {"error": "Invalid JSON format in output file"}
+    
     return render_template('result.html', 
                            jpg_filename=jpg_filename, 
-                           text_filename=text_filename)
+                           text_filename=text_filename,
+                           extracted_data=extracted_data)
+
+@app.route('/api/extract', methods=['POST'])
+def api_extract():
+    """API endpoint for receipt extraction"""
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    
+    if file and allowed_file(file.filename):
+        try:
+            # Generate a unique filename
+            original_filename = secure_filename(file.filename)
+            base_name = os.path.splitext(original_filename)[0]
+            unique_id = str(uuid.uuid4().hex[:8])
+            unique_filename = f"{base_name}_{unique_id}{os.path.splitext(original_filename)[1]}"
+            
+            # Save the uploaded file
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file.save(file_path)
+            
+            # Process the receipt
+            result = process_receipt(file_path)
+            
+            # Return the extracted data
+            return jsonify({
+                "status": "success",
+                "data": result.get('extracted_data', {}),
+                "document_url": url_for('download_file', filename=os.path.basename(result['document_path']), _external=True),
+                "text_url": url_for('download_file', filename=os.path.basename(result['text_path']), _external=True)
+            })
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    
+    return jsonify({"error": "File type not allowed"}), 400
 
 @app.route('/download/<filename>')
 def download_file(filename):
@@ -195,10 +258,19 @@ def view_file(filename):
         # Read the text file content
         with open(os.path.join(app.config['OUTPUT_FOLDER'], filename), 'r', encoding='utf-8') as f:
             content = f.read()
+            
+            # Try to parse as JSON for better display
+            try:
+                parsed_content = json.loads(content)
+                content = json.dumps(parsed_content, indent=2)
+            except json.JSONDecodeError:
+                # Keep as is if not valid JSON
+                pass
+                
         return render_template('view_text.html', filename=filename, content=content)
     else:
-        # For PDF files, redirect to download
-        return redirect(url_for('download_file', filename=filename))
+        # For image files, show the image
+        return render_template('view_image.html', filename=filename)
 
 @app.route('/debug')
 def debug_info():
@@ -212,4 +284,4 @@ def debug_info():
 
 if __name__ == '__main__':
     # Run the server on all network interfaces so it's accessible from other devices
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    app.run(debug=True, host='0.0.0.0', port=5000)

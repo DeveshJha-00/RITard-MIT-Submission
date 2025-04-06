@@ -1,0 +1,1 @@
+Error extracting text: C:\Program Files\Tesseract-OCR	esseract.exe is not installed or it's not in your PATH. See README file for more information.

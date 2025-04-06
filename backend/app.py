@@ -12,12 +12,16 @@ from PIL import Image
 import io
 import requests
 import json
-
+from trans_bot import BankingDataAssistant
+from flask_cors import cross_origin
+from flask_socketio import SocketIO
+import os
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
 # Secure key for the app
 app.secret_key = 'your-secure-financial-key-here'  # Replace with a secure secret key
+
 
 # Store chat sessions
 finance_chat_sessions = {}
@@ -415,6 +419,102 @@ def delete_transaction(transaction_id):
         return jsonify({"message": "Transaction deleted"}), response.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/transactions/chat', methods=['POST'])
+def transaction_chat():
+    session_id = request.json.get('session_id')
+    message = request.json.get('message')
+    
+    if not session_id or not message:
+        return jsonify({"status": "error", "message": "Missing session_id or message"}), 400
+
+    try:
+        # Get or create assistant session
+        if session_id not in finance_chat_sessions:
+            finance_chat_sessions[session_id] = {
+                'assistant': BankingDataAssistant(debug=True),
+                'history': []
+            }
+            
+        assistant = finance_chat_sessions[session_id]['assistant']
+        response = assistant.chat(message)
+        
+        # Store interaction history
+        finance_chat_sessions[session_id]['history'].append({
+            'query': message,
+            'response': response,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        return jsonify({
+            "status": "success",
+            "message": response,
+            "session_id": session_id
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Chat error: {str(e)}"
+        }), 500
+
+@app.route('/api/transactions/data', methods=['POST'])
+@cross_origin()
+def get_transaction_data():
+    session_id = request.json.get('session_id')
+    
+    if not session_id:
+        return jsonify({"status": "error", "message": "Missing session_id"}), 400
+
+    try:
+        # Initialize session if not exists
+        if session_id not in finance_chat_sessions:
+            print(f"Creating new transaction session: {session_id}")
+            finance_chat_sessions[session_id] = {
+                'assistant': BankingDataAssistant(),
+                'history': []
+            }
+            
+        assistant = finance_chat_sessions[session_id]['assistant']
+        
+        # Ensure data is fetched
+        if not assistant.transaction_data or not assistant.account_data:
+            print(f"Fetching data for session: {session_id}")
+            assistant.fetch_all_data()
+        
+        # Create fallback data if fetch failed
+        if not assistant.transaction_data:
+            assistant.transaction_data = []
+        if not assistant.account_data:
+            assistant.account_data = {"data": [{"mainBalance": 0, "currency": "INR"}]}
+            
+        analysis = assistant.analyze_transactions()
+        
+        return jsonify({
+            "status": "success",
+            "data": {
+                "transactions": assistant.transaction_data,
+                "account": assistant.account_data,
+                "analysis": analysis
+            }
+        })
+        
+    except Exception as e:
+        print(f"Data retrieval error: {str(e)}")
+        # Return minimal data structure to prevent frontend errors
+        return jsonify({
+            "status": "success",
+            "data": {
+                "transactions": [],
+                "account": {"data": [{"mainBalance": 0, "currency": "INR"}]},
+                "analysis": {
+                    "total_transactions": 0,
+                    "total_credits": 0,
+                    "total_debits": 0,
+                    "average_transaction": 0
+                }
+            }
+        })
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

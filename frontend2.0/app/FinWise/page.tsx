@@ -219,46 +219,9 @@ export default function FinWisePage() {
         className="sticky top-0 z-10 backdrop-blur-md bg-white/70 dark:bg-gray-900/70 shadow-sm py-4 px-6 border-b border-teal-100 dark:border-indigo-900/30"
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <motion.div className="flex items-center space-x-3" whileHover={{ scale: 1.02 }}>
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-purple-500 rounded-full blur-sm opacity-70"></div>
-              <Avatar className="h-10 w-10 relative">
-                <AvatarImage src="/finwise-logo.png" alt="FinWise" />
-                <AvatarFallback className="bg-gradient-to-r from-teal-500 to-purple-600">
-                  <IndianRupee className="h-5 w-5 text-white" />
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 dark:from-teal-400 dark:to-purple-400 bg-clip-text text-transparent">
-                FinWise
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Your AI Financial Assistant</p>
-            </div>
-          </motion.div>
 
-          <div className="flex items-center space-x-3">
-            <Badge
-              variant="outline"
-              className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-teal-200 dark:border-indigo-800 px-3 py-1 text-xs"
-            >
-              <span className="mr-1 text-teal-600 dark:text-teal-400">v</span>
-              <span className="text-gray-600 dark:text-gray-300">1.0</span>
-            </Badge>
 
-            <motion.button
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm border border-teal-100 dark:border-indigo-800/50 text-gray-800 dark:text-gray-200 focus:outline-none transition-all duration-300"
-            >
-              {theme === "dark" ? (
-                <Sun className="w-5 h-5 text-amber-500" />
-              ) : (
-                <Moon className="w-5 h-5 text-indigo-600" />
-              )}
-            </motion.button>
-
+          <div className="flex items-center justify-center w-full">
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -267,7 +230,7 @@ export default function FinWisePage() {
             >
               {connectionChecking ? (
                 <RefreshCw className="w-5 h-5 animate-spin text-purple-500" />
-              ) : isConnected ? (
+              ) : isConnected ? ( 
                 <Wifi className="w-5 h-5 text-teal-500" />
               ) : (
                 <WifiOff className="w-5 h-5 text-red-500" />
