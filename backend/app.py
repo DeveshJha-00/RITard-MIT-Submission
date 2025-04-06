@@ -231,16 +231,84 @@ def whatsapp_webhook():
 
                 # Check if download was successful
                 if response.status_code == 200:
-                    # Create timestamp for filename
+                    # Create timestamp and unique ID for filename
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-                    # Save image as JPG first
-                    jpg_path = os.path.join(full_path, f"{clean_number}_{timestamp}.jpg")
-                    with open(jpg_path, 'wb') as f:
+                    unique_id = str(uuid.uuid4().hex[:8])
+                    filename = f"{clean_number}_{timestamp}_{unique_id}"
+                    
+                    # Save image to input folder for processing
+                    input_folder = app.config['UPLOAD_FOLDER']
+                    if not os.path.exists(input_folder):
+                        os.makedirs(input_folder, mode=0o755)
+                    
+                    # Determine file extension based on content type or default to jpg
+                    content_type = response.headers.get('Content-Type', 'image/jpeg')
+                    extension = content_type.split('/')[-1] if '/' in content_type else 'jpg'
+                    if extension not in app.config['ALLOWED_EXTENSIONS']:
+                        extension = 'jpg'
+                    
+                    # Full path for saved image
+                    file_path = os.path.join(input_folder, f"{filename}.{extension}")
+                    
+                    # Save the image
+                    with open(file_path, 'wb') as f:
                         f.write(response.content)
-                    print(f"Saved JPG to {jpg_path}")
+                    print(f"Saved image to {file_path}")
+                    
+                    # Process the receipt with receipt_scanner
+                    try:
+                        print(f"Processing receipt from {file_path}")
+                        result = process_receipt(file_path)
+                        
+                        # Get extracted data
+                        extracted_data = result.get('extracted_data', {})
+                        
+                        # Send to MockBank
+                        mockbank_result = send_receipt_to_mockbank(extracted_data)
+                        
+                        # Format a nice response message
+                        if mockbank_result.get('success', False):
+                            # Success message with formatted details
+                            message_parts = [
+                                "✅ Receipt processed successfully!",
+                                "",
+                                "📝 Receipt Details:",
+                            ]
+                            
+                            # Add merchant if available
+                            if "merchant" in extracted_data:
+                                message_parts.append(f"🏬 Merchant: {extracted_data['merchant']}")
+                            
+                            # Add amount if available
+                            if "amount" in extracted_data:
+                                message_parts.append(f"💰 Amount: ₹{extracted_data['amount']}")
+                            
+                            # Add date if available
+                            if "date" in extracted_data:
+                                message_parts.append(f"📅 Date: {extracted_data['date']}")
+                            
+                            # Add transaction details
+                            message_parts.extend([
+                                "",
+                                "🏦 Transaction created!",
+                                f"🔖 ID: {mockbank_result.get('transaction_id', 'Unknown')}"
+                            ])
+                            
+                            # Join all parts
+                            response_message = "\n".join(message_parts)
+                        else:
+                            # Error message
+                            response_message = "❌ Could not process receipt properly. Please try again with a clearer image."
+                            if "error" in mockbank_result:
+                                response_message += f"\n\nError: {mockbank_result['error']}"
+                    
+                    except Exception as proc_error:
+                        print(f"Receipt processing error: {proc_error}")
+                        response_message = "❌ Sorry, I couldn't process your receipt image. Please make sure it's clear and try again."
+                    
+                    # Create Twilio response
                     twilio_response = MessagingResponse()
-                    twilio_response.message("Your image has been saved successfully!")
+                    twilio_response.message(response_message)
                     return str(twilio_response)
                     
                 else:
@@ -281,6 +349,8 @@ def whatsapp_webhook():
 
     except Exception as e:
         print(f"Error in whatsapp_webhook: {e}")
+        traceback_details = traceback.format_exc()
+        print(f"Traceback: {traceback_details}")
         twilio_response = MessagingResponse()
         twilio_response.message("Sorry, I encountered an error processing your request.")
         return str(twilio_response)

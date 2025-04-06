@@ -1,13 +1,10 @@
 {
-    "externalId": "52436e7d-c62e-4c85-9fab-4ba5108d0798",
-    "fullName": "Rahul Sharma",
+    "customerId": "52436e7d-c62e-4c85-9fab-4ba5108d0798",
     "username": "rahul.sharma@example.com",
-    "password": "SecurePass123!",
+    "fullName": "Rahul Sharma",
     "countryCode": "IN",
-    "demo": false,
     "address": "MG Road, Bangalore",
-    "zip": "560001",
+    "zipCode": "560001",
     "city": "Bangalore",
-    "msisdn": "+919876543210",
-    "type": "PRIVATE_PERSON"
+    "phoneNumber": "+919876543210"
 }

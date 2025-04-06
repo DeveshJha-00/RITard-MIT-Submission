@@ -100,7 +100,7 @@ export default function Home() {
                 </Link>
                 
                 {!isSignedIn && (
-                  <Link href="/sign-in">
+                  <Link href="/sign-up">
                     <Button variant="outline" className="border-blue-300 text-blue-100 hover:bg-blue-800/20 px-8 py-6 text-lg rounded-full backdrop-blur-sm">
                       Sign In
                     </Button>

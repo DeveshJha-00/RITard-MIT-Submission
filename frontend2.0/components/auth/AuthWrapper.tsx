@@ -44,7 +44,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
       clerkPatterns.some(pattern => pattern.test(pathname));
 
     if (!isSignedIn && !isPublicPath) {
-      router.push("/sign-in?redirect_url=" + encodeURIComponent(pathname));
+      router.push("/sign-up?redirect_url=" + encodeURIComponent(pathname));
     } else {
       setIsAuthorized(true);
     }

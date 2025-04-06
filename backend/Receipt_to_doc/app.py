@@ -4,17 +4,21 @@ import uuid  # Add this import
 import base64
 import json
 import logging
+import random
+import traceback
+# Add these imports at the top
+import requests
 from datetime import datetime
-from PIL import Image
-import io
-import traceback  # Add this import
-import uuid
-# Rest of your code remains the same
+from flask_cors import CORS
+
+
 from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, jsonify
 from werkzeug.utils import secure_filename
 from receipt_scanner import process_receipt
 
 app = Flask(__name__)
+CORS(app)  # This enables CORS for all routes
+
 app.secret_key = os.urandom(24)  # For flash messages
 app.config['UPLOAD_FOLDER'] = 'input'
 app.config['OUTPUT_FOLDER'] = 'output'
@@ -116,6 +120,216 @@ def upload_file():
     flash('File type not allowed. Please upload a JPG, JPEG, or PNG image.')
     return redirect(url_for('index'))
 
+# Add this function to handle sending receipt data to MockBank API
+def send_receipt_to_mockbank(extracted_data):
+    """
+    Convert receipt data to transaction format and send to MockBank API
+    """
+    try:
+        # Use the same credentials as in gen.py
+        BASE_URL = "https://api.mockbank.io"
+        CLIENT_ID = "ramaiah3316"
+        CLIENT_SECRET = "12345678"
+        USERNAME = "1ms23cy027@msrit.edu"
+        PASSWORD = "karteek**05U"
+        
+        # Get access token using the same method as in gen.py
+        auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
+        data = {
+            "grant_type": "password",
+            "username": USERNAME,
+            "password": PASSWORD
+        }
+        token_response = requests.post(f"{BASE_URL}/oauth/token", auth=auth, data=data)
+        token_response.raise_for_status()
+        access_token = token_response.json()["access_token"]
+        
+        # Load customer and account IDs from mockbank_data.json
+        try:
+            with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'mockbank_data.json')) as f:
+                mockbank_data = json.load(f)
+                customer_id = mockbank_data.get("customer")
+                account_id = mockbank_data.get("account")
+                
+                if not customer_id or not account_id:
+                    raise ValueError("Missing customer or account ID in mockbank_data.json")
+                    
+                app.logger.info(f"Loaded customer_id: {customer_id}, account_id: {account_id} from mockbank_data.json")
+        except Exception as e:
+            app.logger.error(f"Error loading mockbank_data.json: {str(e)}")
+            raise ValueError(f"Could not load customer/account data: {str(e)}")
+        
+        # Convert amount to paise (assuming amount is in rupees)
+        try:
+            amount_value = float(extracted_data.get("amount", "0"))
+            # Receipts are expenses, so amount should be negative
+            amount_paise = int(-abs(amount_value) * 100)
+        except:
+            amount_paise = -1000  # Default to 10 rupees if conversion fails
+        
+        # Get merchant name
+        merchant = extracted_data.get("merchant", "Unknown Merchant")
+        
+        # Get date or use current date
+        try:
+            date_str = extracted_data.get("date")
+            if date_str:
+                # Try to parse the date
+                date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            else:
+                date_obj = datetime.now()
+            booking_date = date_obj.isoformat()[:10]
+        except:
+            booking_date = datetime.now().isoformat()[:10]
+        
+        # Create transaction payload exactly like in gen.py
+        transaction = {
+            "accountId": account_id,
+            "amount": amount_paise,
+            "currency": "INR",
+            "bookingDate": booking_date,
+            "valueDate": datetime.now().isoformat()[:10],
+            "operationId": f"OP-{uuid.uuid4().hex[:8]}",
+            "entryReference": f"REF-{uuid.uuid4().hex[:6]}",
+            "endToEndId": f"E2E-{uuid.uuid4().hex[:8]}",
+            "remittanceInformationUnstructured": f"Receipt - {merchant}",
+            "purposeCode": "OTHR",
+            "bankTransactionCode": "PMT",
+            "proprietaryBankTransactionCode": "DEBT"
+        }
+        
+        # Add debtor account reference exactly like in gen.py
+        transaction.update({
+            "debtorAccount": {
+                "iban": f"IN{random.randint(1000000000000000, 9999999999999999)}",
+                "bban": str(random.randint(10000000000000, 99999999999999)),
+                "currency": "INR"
+            },
+            "debtorBic": "MOCKINBBXXX"
+        })
+        
+        # Log the transaction data for debugging
+        app.logger.info(f"Sending transaction to MockBank: {json.dumps(transaction)}")
+        
+        # Send transaction to MockBank API using the exact same endpoint as in gen.py
+        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        response = requests.post(
+            f"{BASE_URL}/customers/{customer_id}/transactions",
+            headers=headers,
+            json=transaction
+        )
+        
+        # Check response
+        response.raise_for_status()
+        
+        # Return success response
+        return {
+            "success": True, 
+            "transaction_id": response.json().get("id", "unknown"),
+            "amount": abs(amount_paise/100),
+            "merchant": merchant,
+            "date": booking_date
+        }
+            
+    except Exception as e:
+        app.logger.error(f"Error sending receipt to MockBank: {str(e)}")
+        error_details = traceback.format_exc()
+        app.logger.error(f"Error details: {error_details}")
+        return {"success": False, "error": str(e)}
+@app.route('/api/recent_receipt')
+def recent_receipt():
+    """Return the most recent processed receipt"""
+    try:
+        if os.path.exists(app.config['OUTPUT_FOLDER']):
+            # Get all document jpg files
+            jpg_files = [f for f in os.listdir(app.config['OUTPUT_FOLDER']) if f.endswith('_document.jpg')]
+            
+            if not jpg_files:
+                return jsonify({"error": "No receipts found"}), 404
+                
+            # Sort by creation time (most recent first)
+            jpg_files.sort(key=lambda x: os.path.getctime(os.path.join(app.config['OUTPUT_FOLDER'], x)), reverse=True)
+            
+            # Get the most recent file
+            most_recent = jpg_files[0]
+            text_file = most_recent.replace('_document.jpg', '_text.txt')
+            
+            # Extract receipt ID if available
+            receipt_id = most_recent.split('_')[0] if '_' in most_recent else ''
+            
+            return jsonify({
+                "jpg_filename": most_recent,
+                "text_filename": text_file,
+                "receipt_id": receipt_id
+            })
+        
+        return jsonify({"error": "No output directory found"}), 404
+    
+    except Exception as e:
+        app.logger.error(f"Error getting recent receipt: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/transaction_status')
+def transaction_status():
+    """Return the transaction status for a receipt"""
+    receipt_id = request.args.get('receipt_id', '')
+    
+    # This is a placeholder - in a real app, you would look up the transaction
+    # status in your database based on the receipt ID
+    return jsonify({
+        "success": True,
+        "transaction_id": f"TX-{receipt_id[:8] if receipt_id else uuid.uuid4().hex[:8]}",
+        "amount": 1250.75,
+        "merchant": "Sample Merchant",
+        "date": datetime.now().isoformat()[:10]
+    })
+# Update the API endpoint for receipt scanning and transaction creation
+@app.route('/api/receipt_to_transaction', methods=['POST'])
+def api_receipt_to_transaction():
+    """API endpoint to scan a receipt and create a transaction"""
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    
+    if file and allowed_file(file.filename):
+        try:
+            # Generate a unique filename
+            original_filename = secure_filename(file.filename)
+            base_name = os.path.splitext(original_filename)[0]
+            unique_id = str(uuid.uuid4().hex[:8])
+            unique_filename = f"{base_name}_{unique_id}{os.path.splitext(original_filename)[1]}"
+            
+            # Save the uploaded file
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file.save(file_path)
+            
+            # Process the receipt
+            result = process_receipt(file_path)
+            extracted_data = result.get('extracted_data', {})
+            
+            # Send to MockBank
+            mockbank_result = send_receipt_to_mockbank(extracted_data)
+            
+            # Return the results
+            return jsonify({
+                "status": "success",
+                "receipt_data": extracted_data,
+                "transaction_added": mockbank_result.get('success', False),
+                "transaction_id": mockbank_result.get('transaction_id', None),
+                "error": mockbank_result.get('error', None),
+                "document_url": url_for('download_file', filename=os.path.basename(result['document_path']), _external=True),
+                "text_url": url_for('download_file', filename=os.path.basename(result['text_path']), _external=True)
+            })
+            
+        except Exception as e:
+            app.logger.error(f"Error in receipt_to_transaction: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+    
+    return jsonify({"error": "File type not allowed"}), 400
 @app.route('/upload_image', methods=['POST'])
 def upload_image():
     """Handle base64 image data from camera capture"""
@@ -181,32 +395,6 @@ def upload_image():
         flash(f'Error processing receipt: {str(e)}')
         return redirect(url_for('index'))
 
-@app.route('/result')
-def show_result():
-    """Display the processing results"""
-    jpg_filename = request.args.get('jpg_filename')
-    text_filename = request.args.get('text_filename')
-    
-    # Verify the files exist
-    jpg_path = os.path.join(app.config['OUTPUT_FOLDER'], jpg_filename)
-    text_path = os.path.join(app.config['OUTPUT_FOLDER'], text_filename)
-    
-    if not os.path.exists(jpg_path) or not os.path.exists(text_path):
-        flash('Output files not found. Please try processing the receipt again.')
-        return redirect(url_for('index'))
-    
-    # Read the extracted data
-    with open(text_path, 'r', encoding='utf-8') as f:
-        try:
-            extracted_data = json.loads(f.read())
-        except json.JSONDecodeError:
-            extracted_data = {"error": "Invalid JSON format in output file"}
-    
-    return render_template('result.html', 
-                           jpg_filename=jpg_filename, 
-                           text_filename=text_filename,
-                           extracted_data=extracted_data)
-
 @app.route('/api/extract', methods=['POST'])
 def api_extract():
     """API endpoint for receipt extraction"""
@@ -271,6 +459,42 @@ def view_file(filename):
     else:
         # For image files, show the image
         return render_template('view_image.html', filename=filename)
+
+# Add the missing show_result route
+@app.route('/result')
+def show_result():
+    """Show the results of receipt processing"""
+    jpg_filename = request.args.get('jpg_filename')
+    text_filename = request.args.get('text_filename')
+    
+    if not jpg_filename or not text_filename:
+        flash('Missing result files')
+        return redirect(url_for('index'))
+    
+    # Try to read the extracted data from the text file
+    extracted_data = {}
+    try:
+        with open(os.path.join(app.config['OUTPUT_FOLDER'], text_filename), 'r', encoding='utf-8') as f:
+            content = f.read()
+            try:
+                # Try to parse as JSON
+                extracted_data = json.loads(content)
+            except json.JSONDecodeError:
+                # If not valid JSON, just use empty dict
+                pass
+    except Exception as e:
+        app.logger.error(f"Error reading text file: {str(e)}")
+    
+    # Send to MockBank if we have data
+    mockbank_result = {"success": False}
+    if extracted_data:
+        mockbank_result = send_receipt_to_mockbank(extracted_data)
+    
+    return render_template('result.html', 
+                          jpg_filename=jpg_filename, 
+                          text_filename=text_filename,
+                          extracted_data=extracted_data,
+                          mockbank_result=mockbank_result)
 
 @app.route('/debug')
 def debug_info():

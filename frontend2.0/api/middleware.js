@@ -41,13 +41,13 @@ export default clerkMiddleware(async (auth, req) => {
       
       // If no user ID, redirect to sign-in
       if (!userId) {
-        const signInUrl = new URL("/sign-in", req.url);
+        const signInUrl = new URL("/sign-up", req.url);
         signInUrl.searchParams.set("redirect_url", req.url);
         return NextResponse.redirect(signInUrl);
       }
     } catch (error) {
       // Handle authentication errors
-      const signInUrl = new URL("/sign-in", req.url);
+      const signInUrl = new URL("/sign-up", req.url);
       return NextResponse.redirect(signInUrl);
     }
   }
